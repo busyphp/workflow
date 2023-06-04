@@ -69,6 +69,16 @@ class ModelMarkingStore implements MarkingStoreInterface
     
     
     /**
+     * 生成模型字段名称，不覆盖原有的字段
+     * @return string
+     */
+    protected function privateField() : string
+    {
+        return '__private_workflow_field_' . $this->field;
+    }
+    
+    
+    /**
      * @inheritdoc
      * @throws DataNotFoundException
      * @throws DbException
@@ -80,11 +90,15 @@ class ModelMarkingStore implements MarkingStoreInterface
             $value = $subject->field($this->field)->failException()->find();
             $value = (string) $value[$this->field];
         } elseif ($subject instanceof Field) {
-            if (!isset($subject[$this->field])) {
+            if (isset($subject[$this->field])) {
+                $subject[$this->privateField()] = $subject[$this->field];
+            }
+            
+            if (!isset($subject[$this->privateField()])) {
                 return new Marking();
             }
             
-            $value = (string) $subject[$this->field];
+            $value = (string) $subject[$this->privateField()];
         } else {
             return new Marking();
         }
@@ -119,12 +133,8 @@ class ModelMarkingStore implements MarkingStoreInterface
         // Field
         elseif ($subject instanceof Field) {
             $value = key($marking->getPlaces());
-            if (isset($subject[$this->field])) {
-                $method = 'set' . StringHelper::studly($this->field);
-                $subject->{$method}($value);
-            } else {
-                $subject[$this->field] = $value;
-            }
+            
+            $subject[$this->privateField()] = $value;
         } else {
             throw new LogicException(sprintf('Class "%s" not support setMarking()', get_class($subject)));
         }
