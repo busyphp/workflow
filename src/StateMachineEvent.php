@@ -121,7 +121,6 @@ class StateMachineEvent implements EventDispatcherInterface
      */
     public function dispatch(object $event, string $eventName = null) : object
     {
-        trace($eventName);
         Event::trigger(sprintf('busy.%s', $eventName), $event);
         
         return $event;
