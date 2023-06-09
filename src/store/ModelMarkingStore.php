@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace BusyPHP\workflow\store;
 
-use BusyPHP\helper\StringHelper;
 use BusyPHP\Model;
 use BusyPHP\model\Field;
 use LogicException;
@@ -20,6 +19,8 @@ use think\db\exception\DbException;
  */
 class ModelMarkingStore implements MarkingStoreInterface
 {
+    public const FIELD_KEY = '__workflow_apply_field__';
+    
     /**
      * @var string
      */
@@ -120,8 +121,8 @@ class ModelMarkingStore implements MarkingStoreInterface
         // 模型
         // Model
         if ($subject instanceof Model) {
-            if (isset($context[0]) && is_a($context[0], $subject->getFieldClass(), true)) {
-                $context = $context[0];
+            if (isset($context[self::FIELD_KEY])) {
+                $context = $context[self::FIELD_KEY];
             }
             
             $context[$this->field] = key($marking->getPlaces());

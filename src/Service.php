@@ -154,9 +154,15 @@ class Service extends \think\Service
                 });
                 
                 // 注入 $model->applyFieldTo() 方法
-                $model::macro('apply' . $field . 'To', function(string $name, int|string $id, array $context = []) use ($workflow, $markingStore) : Marking {
+                $model::macro('apply' . $field . 'To', function(string $name, int|string $id, array|Field $context = []) use ($workflow, $markingStore) : Marking {
                     try {
                         $markingStore->setId($id);
+                        
+                        if ($context instanceof Field) {
+                            $context = [
+                                $markingStore::FIELD_KEY => $context
+                            ];
+                        }
                         
                         return $workflow->apply($this, $name, $context);
                     } catch (NotEnabledTransitionException $e) {
@@ -193,9 +199,15 @@ class Service extends \think\Service
                     });
                     
                     // 注入 $model->applyTransitionName() 方法
-                    $model::macro('apply' . $method, function(int|string $id, array $context = []) use ($transition, $workflow, $markingStore) : Marking {
+                    $model::macro('apply' . $method, function(int|string $id, array|Field $context = []) use ($transition, $workflow, $markingStore) : Marking {
                         try {
                             $markingStore->setId($id);
+                            
+                            if ($context instanceof Field) {
+                                $context = [
+                                    $markingStore::FIELD_KEY => $context
+                                ];
+                            }
                             
                             return $workflow->apply($this, $transition->getName(), $context);
                         } catch (NotEnabledTransitionException $e) {
@@ -267,7 +279,14 @@ class Service extends \think\Service
                     [
                         new Argument('name', 'string'),
                         new Argument($generator->getPk(), $generator->getPkType()),
-                        new Argument('context', 'array', '[]'),
+                        new Argument(
+                            'context',
+                            [
+                                'array',
+                                $generator->getModel()->getFieldClass(false) ?: Field::class
+                            ],
+                            '[]'
+                        ),
                     ],
                     Marking::class
                 );
@@ -296,7 +315,13 @@ class Service extends \think\Service
                         'apply' . $method,
                         [
                             new Argument($generator->getPk(), $generator->getPkType()),
-                            new Argument('context', 'array', '[]'),
+                            new Argument(
+                                'context',
+                                [
+                                    'array',
+                                    $generator->getModel()->getFieldClass(false) ?: Field::class
+                                ],
+                                '[]'),
                         ],
                         Marking::class
                     );
