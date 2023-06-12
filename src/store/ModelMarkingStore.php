@@ -75,7 +75,7 @@ class ModelMarkingStore implements MarkingStoreInterface
      */
     protected function privateField() : string
     {
-        return '__private_workflow_field_' . $this->field;
+        return Field::PRIVATE_VAR_PREFIX . 'workflow_field_' . $this->field;
     }
     
     
